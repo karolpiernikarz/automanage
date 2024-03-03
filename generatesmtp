@@ -1,0 +1,27 @@
+if [ "$#" -ne 2 ]; then
+  echo "Usage: ./aws-ses-smtp-password.sh secret-key-here region-here"
+  exit 1
+fi
+
+KEY="${1}"
+REGION="${2}"
+
+DATE="11111111"
+
+SERVICE="ses"
+TERMINAL="aws4_request"
+MESSAGE="SendRawEmail"
+VERSION="4"
+VERSION_IN_BYTES=$(printf \\$(printf '%03o' "${VERSION}"));
+
+#SIGNATURE_IN_BYTES=$(echo -n "${MESSAGE}" | openssl dgst -sha256 -hmac "${KEY}" -binary);
+
+SIGNATURE_IN_BYTES=$(echo -n "${DATE}" | openssl dgst -sha256 -mac HMAC -macopt "key:AWS4${KEY}" | sed 's/^.* //');
+SIGNATURE_IN_BYTES=$(echo -n "${REGION}" | openssl dgst -sha256 -mac HMAC -macopt "hexkey:${SIGNATURE_IN_BYTES}" | sed 's/^.* //');
+SIGNATURE_IN_BYTES=$(echo -n "${SERVICE}" | openssl dgst -sha256 -mac HMAC -macopt "hexkey:${SIGNATURE_IN_BYTES}" | sed 's/^.* //');
+SIGNATURE_IN_BYTES=$(echo -n "${TERMINAL}" | openssl dgst -sha256 -mac HMAC -macopt "hexkey:${SIGNATURE_IN_BYTES}" | sed 's/^.* //');
+SIGNATURE_IN_BYTES=$(echo -n "${MESSAGE}" | openssl dgst -sha256 -mac HMAC -macopt "hexkey:${SIGNATURE_IN_BYTES}" -binary | sed 's/^.* //');
+SIGNATURE_AND_VERSION="${VERSION_IN_BYTES}${SIGNATURE_IN_BYTES}"
+SMTP_PASSWORD=$(echo -n "${SIGNATURE_AND_VERSION}" | base64);
+
+echo "${SMTP_PASSWORD}"

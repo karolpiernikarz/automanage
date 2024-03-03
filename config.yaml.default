@@ -1,0 +1,36 @@
+ContentDir: web
+app:
+  port: 8080
+  image: 
+  apitoken: 
+  appdir:
+  company: 
+  datadir:
+  notifyemail:
+  supportemails: 
+    -
+  timezone: "Europe/Copenhagen"
+laravel:
+  appkeysize: 32
+db:
+  type: mysql
+  host: 127.0.0.1
+  username: 
+  password: 
+  port: 
+  prefix:
+  admindb: 
+aws:
+  region: 
+  accesskeyid: 
+  secretaccesskey:
+  smtpsecretkey: 
+  token:
+  arn: 
+  smtpdomain:
+caddy:
+  url:
+  file:
+test:
+  restauranttoken: 
+  orderboxid:
