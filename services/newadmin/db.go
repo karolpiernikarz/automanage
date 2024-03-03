@@ -16,7 +16,7 @@ func InitDB() {
 }
 
 func DBConnect() *gorm.DB {
-	db, err := sqlx.Open("mysql", viper.GetString("newadmin.db.username")+":"+viper.GetString("newadmin.db.password")+"@tcp("+viper.GetString("newadmin.db.host")+":"+viper.GetString("newadmin.db.port")+")/"+viper.GetString("newadmin.db.database"))
+	db, err := sqlx.Open("mysql", viper.GetString("db.username")+":"+viper.GetString("db.password")+"@tcp("+viper.GetString("db.host")+":"+viper.GetString("db.port")+")/"+viper.GetString("db.database"))
 	if err != nil {
 		fmt.Println(err)
 	}
