@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/karolpiernikarz/automanage/services/redis"
+	// "github.com/karolpiernikarz/automanage/services/redis"
 	"github.com/karolpiernikarz/automanage/utils"
 	"gorm.io/datatypes"
 
@@ -418,16 +418,16 @@ func LiveSupportLastOrders(timeStart time.Time, timeEnd time.Time) (response []m
 					} else {
 						r.OrderboxStatus = 0
 					}
-					if redis.IsExist("order_" + strconv.Itoa(int(r.RestaurantId)) + "_" + orderInfo.OrderNumber + "-printed") {
-						r.OrderboxPrinted = 1
-					} else {
-						r.OrderboxPrinted = 0
-					}
-					if redis.IsExist("order_" + strconv.Itoa(int(r.RestaurantId)) + "_" + orderInfo.OrderNumber + "-responded") {
-						r.OrderboxResponded, _ = redis.Get("order_" + strconv.Itoa(int(r.RestaurantId)) + "_" + orderInfo.OrderNumber + "-responded")
-					} else {
-						r.OrderboxResponded = ""
-					}
+					// if redis.IsExist("order_" + strconv.Itoa(int(r.RestaurantId)) + "_" + orderInfo.OrderNumber + "-printed") {
+					r.OrderboxPrinted = 1
+					// } else {
+					// 	r.OrderboxPrinted = 0
+					// }
+					// if redis.IsExist("order_" + strconv.Itoa(int(r.RestaurantId)) + "_" + orderInfo.OrderNumber + "-responded") {
+					// 	r.OrderboxResponded, _ = redis.Get("order_" + strconv.Itoa(int(r.RestaurantId)) + "_" + orderInfo.OrderNumber + "-responded")
+					// } else {
+					r.OrderboxResponded = ""
+					// }
 					if orderInfo.Other.Data() != nil {
 						if orderInfo.Other.Data().Wolt.Data() != nil {
 							if orderInfo.Other.Data().Wolt.Data().Data.Data() != nil {
@@ -446,18 +446,18 @@ func LiveSupportLastOrders(timeStart time.Time, timeEnd time.Time) (response []m
 						}
 					}
 
-					if strings.ToLower(restaurant.Info.Data().CurrierType) == "wolt" && orderInfo.Type == 1 {
-						currierStatusText := ""
-						currierStatusText, _ = redis.Get("order_" + strconv.FormatUint(uint64(restaurant.ID), 10) + "_" + orderInfo.OrderNumber + "_status")
-						r.CurrierStatusText = currierStatusText
+					// if strings.ToLower(restaurant.Info.Data().CurrierType) == "wolt" && orderInfo.Type == 1 {
+					// 	currierStatusText := ""
+					// 	currierStatusText, _ = redis.Get("order_" + strconv.FormatUint(uint64(restaurant.ID), 10) + "_" + orderInfo.OrderNumber + "_status")
+					// 	r.CurrierStatusText = currierStatusText
 
-						CurrierPickupEta := ""
-						CurrierPickupEta, _ = redis.Get("order_" + strconv.FormatUint(uint64(restaurant.ID), 10) + "_" + orderInfo.OrderNumber + "_pickupeta")
-						r.CurrierPickupEta = CurrierPickupEta
+					// 	CurrierPickupEta := ""
+					// 	CurrierPickupEta, _ = redis.Get("order_" + strconv.FormatUint(uint64(restaurant.ID), 10) + "_" + orderInfo.OrderNumber + "_pickupeta")
+					// 	r.CurrierPickupEta = CurrierPickupEta
 
-						// we don't track the dropoff eta for now
-						//r.CurrierDropoffEta, _ = cache.GetValueFromKey("order_" + strconv.FormatUint(uint64(restaurant.ID), 10) + "_" + orderInfo.OrderNumber + "_dropoff_eta")
-					}
+					// 	// we don't track the dropoff eta for now
+					// 	//r.CurrierDropoffEta, _ = cache.GetValueFromKey("order_" + strconv.FormatUint(uint64(restaurant.ID), 10) + "_" + orderInfo.OrderNumber + "_dropoff_eta")
+					// }
 					response = append(response, r)
 				}
 			}
