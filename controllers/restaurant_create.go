@@ -179,19 +179,19 @@ func RestaurantCreate(c *gin.Context) {
 	//create the database,user and give permisson
 	err = helpers.CreateDatabase(dbname)
 	if err != nil {
-		helpers.SendResponse(c, helpers.Response{Status: http.StatusInternalServerError, Error: []string{err.Error()}})
+		helpers.SendResponse(c, helpers.Response{Status: http.StatusInternalServerError, Error: []string{"error while creating database"}})
 		log.WithFields(log.Fields{"restaurantid": restaurantid, "url": c.Request.URL, "client_ip": c.ClientIP(), "message": err.Error()}).Error("error while creating database")
 		return
 	}
 	err = helpers.CreateDatabaseUser(dbname, dbpassword)
 	if err != nil {
-		helpers.SendResponse(c, helpers.Response{Status: http.StatusInternalServerError, Error: []string{err.Error()}})
+		helpers.SendResponse(c, helpers.Response{Status: http.StatusInternalServerError, Error: []string{"error while creating database user"}})
 		log.WithFields(log.Fields{"restaurantid": restaurantid, "url": c.Request.URL, "client_ip": c.ClientIP(), "message": err.Error()}).Error("error while creating database user")
 		return
 	}
 	err = helpers.GivePermToUser(dbname, dbname)
 	if err != nil {
-		helpers.SendResponse(c, helpers.Response{Status: http.StatusInternalServerError, Error: []string{err.Error()}})
+		helpers.SendResponse(c, helpers.Response{Status: http.StatusInternalServerError, Error: []string{"error while giving perm to user"}})
 		log.WithFields(log.Fields{"restaurantid": restaurantid, "url": c.Request.URL, "client_ip": c.ClientIP(), "message": err.Error()}).Error("error while giving perm to user")
 		return
 	}
@@ -199,7 +199,7 @@ func RestaurantCreate(c *gin.Context) {
 	// import the database
 	_, err = helpers.ImportDatabase(dbname, dbpassword)
 	if err != nil {
-		helpers.SendResponse(c, helpers.Response{Status: http.StatusInternalServerError, Error: []string{err.Error()}})
+		helpers.SendResponse(c, helpers.Response{Status: http.StatusInternalServerError, Error: []string{"error while importing database"}})
 		log.WithFields(log.Fields{"restaurantid": restaurantid, "url": c.Request.URL, "client_ip": c.ClientIP(), "message": err.Error()}).Error("error while importing database")
 		return
 	}
