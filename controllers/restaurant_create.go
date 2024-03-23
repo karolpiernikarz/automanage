@@ -92,6 +92,7 @@ func RestaurantCreate(c *gin.Context) {
 	// check if domain already exist
 	if helpers.IsDomainExist(domain) {
 		helpers.SendResponse(c, helpers.Response{Status: http.StatusBadRequest, Error: []string{"domain exist in Caddyfile"}})
+		log.WithFields(log.Fields{"restaurantid": restaurantid, "url": c.Request.URL, "client_ip": c.ClientIP()}).Error("domain exist in Caddyfile")
 		return
 	}
 
@@ -99,6 +100,7 @@ func RestaurantCreate(c *gin.Context) {
 	result, err := helpers.CheckDatabaseUser(dbname)
 	if err != nil {
 		helpers.SendResponse(c, helpers.Response{Status: http.StatusInternalServerError, Error: []string{err.Error()}})
+		log.WithFields(log.Fields{"restaurantid": restaurantid, "url": c.Request.URL, "client_ip": c.ClientIP(), "message": err.Error()}).Error("error while checking database user")
 		return
 	}
 	if result {
@@ -126,6 +128,7 @@ func RestaurantCreate(c *gin.Context) {
 	free_port, err := helpers.GetFreePort()
 	if err != nil {
 		helpers.SendResponse(c, helpers.Response{Status: http.StatusInternalServerError, Error: []string{err.Error()}})
+		log.WithFields(log.Fields{"restaurantid": restaurantid, "url": c.Request.URL, "client_ip": c.ClientIP(), "message": err.Error()}).Error("error while checking free port")
 		return
 	}
 
@@ -133,36 +136,43 @@ func RestaurantCreate(c *gin.Context) {
 	err = helpers.CreateS3Bucket(bucketname, restaurantid, domain)
 	if err != nil {
 		helpers.SendResponse(c, helpers.Response{Status: http.StatusInternalServerError, Error: []string{err.Error()}})
+		log.WithFields(log.Fields{"restaurantid": restaurantid, "url": c.Request.URL, "client_ip": c.ClientIP(), "message": err.Error()}).Error("error while creating s3 bucket")
 		return
 	}
 	err = helpers.CreateS3BucketPolicy(bucketname)
 	if err != nil {
 		helpers.SendResponse(c, helpers.Response{Status: http.StatusInternalServerError, Error: []string{err.Error()}})
+		log.WithFields(log.Fields{"restaurantid": restaurantid, "url": c.Request.URL, "client_ip": c.ClientIP(), "message": err.Error()}).Error("error while creating s3 bucket policy")
 		return
 	}
 	err = helpers.CreateIAMUser(bucketname)
 	if err != nil {
 		helpers.SendResponse(c, helpers.Response{Status: http.StatusInternalServerError, Error: []string{err.Error()}})
+		log.WithFields(log.Fields{"restaurantid": restaurantid, "url": c.Request.URL, "client_ip": c.ClientIP(), "message": err.Error()}).Error("error while creating iam user")
 		return
 	}
 	err = helpers.CreateIAMPolicy(bucketname, restaurantid, domain, string(hostParts[0])+"@"+viper.GetString("aws.smtpdomain"))
 	if err != nil {
 		helpers.SendResponse(c, helpers.Response{Status: http.StatusInternalServerError, Error: []string{err.Error()}})
+		log.WithFields(log.Fields{"restaurantid": restaurantid, "url": c.Request.URL, "client_ip": c.ClientIP(), "message": err.Error()}).Error("error while creating iam policy")
 		return
 	}
 	err = helpers.AttachIAMPolicy(bucketname)
 	if err != nil {
 		helpers.SendResponse(c, helpers.Response{Status: http.StatusInternalServerError, Error: []string{err.Error()}})
+		log.WithFields(log.Fields{"restaurantid": restaurantid, "url": c.Request.URL, "client_ip": c.ClientIP(), "message": err.Error()}).Error("error while attaching iam policy")
 		return
 	}
 	accesskey, secretkey, err := helpers.CreateAccessKey(bucketname)
 	if err != nil {
 		helpers.SendResponse(c, helpers.Response{Status: http.StatusInternalServerError, Error: []string{err.Error()}})
+		log.WithFields(log.Fields{"restaurantid": restaurantid, "url": c.Request.URL, "client_ip": c.ClientIP(), "message": err.Error()}).Error("error while creating access key")
 		return
 	}
 	smtppassword, err := helpers.GenerateSmtpCredentials(secretkey, viper.GetString("aws.region"))
 	if err != nil {
 		helpers.SendResponse(c, helpers.Response{Status: http.StatusInternalServerError, Error: []string{err.Error()}})
+		log.WithFields(log.Fields{"restaurantid": restaurantid, "url": c.Request.URL, "client_ip": c.ClientIP(), "message": err.Error()}).Error("error while generating smtp credentials")
 		return
 	}
 
@@ -170,16 +180,19 @@ func RestaurantCreate(c *gin.Context) {
 	err = helpers.CreateDatabase(dbname)
 	if err != nil {
 		helpers.SendResponse(c, helpers.Response{Status: http.StatusInternalServerError, Error: []string{err.Error()}})
+		log.WithFields(log.Fields{"restaurantid": restaurantid, "url": c.Request.URL, "client_ip": c.ClientIP(), "message": err.Error()}).Error("error while creating database")
 		return
 	}
 	err = helpers.CreateDatabaseUser(dbname, dbpassword)
 	if err != nil {
 		helpers.SendResponse(c, helpers.Response{Status: http.StatusInternalServerError, Error: []string{err.Error()}})
+		log.WithFields(log.Fields{"restaurantid": restaurantid, "url": c.Request.URL, "client_ip": c.ClientIP(), "message": err.Error()}).Error("error while creating database user")
 		return
 	}
 	err = helpers.GivePermToUser(dbname, dbname)
 	if err != nil {
 		helpers.SendResponse(c, helpers.Response{Status: http.StatusInternalServerError, Error: []string{err.Error()}})
+		log.WithFields(log.Fields{"restaurantid": restaurantid, "url": c.Request.URL, "client_ip": c.ClientIP(), "message": err.Error()}).Error("error while giving perm to user")
 		return
 	}
 
@@ -187,6 +200,7 @@ func RestaurantCreate(c *gin.Context) {
 	_, err = helpers.ImportDatabase(dbname, dbpassword)
 	if err != nil {
 		helpers.SendResponse(c, helpers.Response{Status: http.StatusInternalServerError, Error: []string{err.Error()}})
+		log.WithFields(log.Fields{"restaurantid": restaurantid, "url": c.Request.URL, "client_ip": c.ClientIP(), "message": err.Error()}).Error("error while importing database")
 		return
 	}
 
@@ -222,7 +236,7 @@ func RestaurantCreate(c *gin.Context) {
 	err = os.Mkdir(filepath.Join(viper.GetString("app.workdir"), restaurantid), os.ModePerm)
 	if err != nil {
 		helpers.SendResponse(c, helpers.Response{Status: http.StatusInternalServerError, Error: []string{err.Error()}})
-		log.WithFields(log.Fields{"restaurantid": restaurantid, "url": c.Request.URL, "client_ip": c.ClientIP()}).Error(err.Error())
+		log.WithFields(log.Fields{"restaurantid": restaurantid, "url": c.Request.URL, "client_ip": c.ClientIP(), "message": err.Error()}).Error("error while creating restaurant directory")
 		return
 	}
 
@@ -230,13 +244,14 @@ func RestaurantCreate(c *gin.Context) {
 	err = os.WriteFile(viper.GetString("app.workdir")+"/"+restaurantid+"/docker-compose.yaml", file, 0660)
 	if err != nil {
 		helpers.SendResponse(c, helpers.Response{Status: http.StatusInternalServerError, Error: []string{err.Error()}})
-		log.WithFields(log.Fields{"restaurantid": restaurantid, "url": c.Request.URL, "client_ip": c.ClientIP()}).Error(err.Error())
+		log.WithFields(log.Fields{"restaurantid": restaurantid, "url": c.Request.URL, "client_ip": c.ClientIP(), "message": err.Error()}).Error("error while writing docker-compose.yaml")
 		return
 	}
 
 	err = helpers.AppendCaddyFile(domain, strconv.Itoa(free_port), restaurantid)
 	if err != nil {
 		helpers.SendResponse(c, helpers.Response{Status: http.StatusInternalServerError, Error: []string{err.Error()}})
+		log.WithFields(log.Fields{"domain": domain, "restaurantid": restaurantid, "url": c.Request.URL, "client_ip": c.ClientIP(), "message": err.Error()}).Error("error while appending to Caddyfile")
 		return
 	}
 
@@ -245,7 +260,7 @@ func RestaurantCreate(c *gin.Context) {
 	err = cmd.Run()
 	if err != nil {
 		helpers.SendResponse(c, helpers.Response{Status: http.StatusInternalServerError, Error: []string{err.Error()}})
-		log.WithFields(log.Fields{"restaurantid": restaurantid, "url": c.Request.URL, "client_ip": c.ClientIP()}).Error(err.Error())
+		log.WithFields(log.Fields{"restaurantid": restaurantid, "url": c.Request.URL, "client_ip": c.ClientIP(), "message": err.Error()}).Error("error while running docker compose")
 		return
 	}
 
