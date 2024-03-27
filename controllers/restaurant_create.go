@@ -192,7 +192,7 @@ func RestaurantCreate(c *gin.Context) {
 	}
 	smtppassword, err := helpers.GenerateSmtpCredentials(secretkey, viper.GetString("aws.region"))
 	if err != nil {
-		helpers.SendResponse(c, helpers.Response{Status: http.StatusInternalServerError, Error: []string{err.Error()}})
+		helpers.SendResponse(c, helpers.Response{Status: http.StatusInternalServerError, Error: []string{"error while generating smtp credentials"}})
 		log.WithFields(log.Fields{"restaurantid": restaurantid, "url": c.Request.URL, "client_ip": c.ClientIP(), "message": err.Error()}).Error("error while generating smtp credentials")
 		fmt.Println("error while generating smtp credentials")
 		return
