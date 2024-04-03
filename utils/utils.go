@@ -100,7 +100,7 @@ func SendSlackWebhookMessage(message models.SlackWebhookMessage, webhook string)
 		return err
 	}
 	// set headers
-	req.Header.Set("Content-Type", "application/json")
+	// req.Header.Set("Content-Type", "application/json")
 	// send request
 	_, err = http.DefaultClient.Do(req)
 	if err != nil {
