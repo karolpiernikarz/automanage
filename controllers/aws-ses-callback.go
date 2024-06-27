@@ -113,10 +113,16 @@ func AwsSesWebhook(c *gin.Context) {
 
 	switch feedback.EventType {
 	case "Bounce":
+		fmt.Println("Processing Bounce event")
+		fmt.Printf("Bounce details: %+v\n", feedback)
+
 		dcFiles, err := filecache.DockerComposeFiles()
 		if err != nil {
-			fmt.Println(err)
+			fmt.Println("Error fetching Docker Compose files:", err)
+			break
 		}
+		fmt.Printf("Docker Compose files: %+v\n", dcFiles)
+
 		restaurantInfo := models.DockerCompose{}
 		restaurantId := ""
 		for _, dcFile := range dcFiles {
@@ -127,26 +133,32 @@ func AwsSesWebhook(c *gin.Context) {
 			}
 		}
 		if restaurantId == "" {
-			fmt.Println("restaurant not found")
+			fmt.Println("Restaurant not found for source:", feedback.Mail.Source)
 			c.JSON(404, gin.H{
 				"status":  "error",
 				"message": "restaurant not found",
 			})
 			return
 		}
+		fmt.Println("Found restaurant ID:", restaurantId)
+
 		order, err := helpers.GetLastOrderByEmail(restaurantId, feedback.Mail.Destination[0])
 		if err != nil {
-			fmt.Println("order not found")
+			fmt.Println("Order not found for email:", feedback.Mail.Destination[0])
 			c.JSON(404, gin.H{
 				"status":  "error",
 				"message": "order not found",
 			})
 			return
 		}
+		fmt.Printf("Order details: %+v\n", order)
+
 		// send Slack notification
 		err = utils.SendSlackWebhookMessage(CreateSlackMessageSnsBounce(feedback, order, restaurantInfo), viper.GetString("slack.webhook"))
 		if err != nil {
-			fmt.Println(err)
+			fmt.Println("Error sending Slack notification:", err)
+		} else {
+			fmt.Println("Slack notification sent successfully")
 		}
 	}
 
