@@ -111,6 +111,7 @@ func AwsSesWebhook(c *gin.Context) {
 		fmt.Println("amazon_ses_" + feedback.Mail.MessageId + " does not exist in cache")
 	}
 
+	fmt.Printf("Received feedback: %+v\n", feedback)
 	switch feedback.EventType {
 	case "Bounce":
 		fmt.Println("Processing Bounce event")
