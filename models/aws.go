@@ -15,7 +15,7 @@ type StatementEntry struct {
 }
 
 type AmazonSesFeedback struct {
-	EventType string `json:"eventType"`
+	EventType string `json:"notificationType"`
 	Bounce    struct {
 		FeedbackId        string `json:"feedbackId"`
 		BounceType        string `json:"bounceType"`
