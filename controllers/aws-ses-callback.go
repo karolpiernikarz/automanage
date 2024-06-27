@@ -1,7 +1,10 @@
 package controllers
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -13,10 +16,55 @@ import (
 	"github.com/spf13/viper"
 )
 
-func AwsSesWebhook(c *gin.Context) {
+type SnsMessage struct {
+	Type           string `json:"Type"`
+	MessageId      string `json:"MessageId"`
+	Token          string `json:"Token"`
+	TopicArn       string `json:"TopicArn"`
+	Message        string `json:"Message"`
+	SubscribeURL   string `json:"SubscribeURL"`
+	Timestamp      string `json:"Timestamp"`
+	Signature      string `json:"Signature"`
+	SigningCertURL string `json:"SigningCertURL"`
+	UnsubscribeURL string `json:"UnsubscribeURL"`
+}
 
+func AwsSesWebhook(c *gin.Context) {
+	var snsMessage SnsMessage
+
+	body, err := io.ReadAll(c.Request.Body)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to read request body"})
+		return
+	}
+
+	err = json.Unmarshal(body, &snsMessage)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to parse SNS message"})
+		return
+	}
+
+	if snsMessage.Type == "SubscriptionConfirmation" {
+		resp, err := http.Get(snsMessage.SubscribeURL)
+		if err != nil {
+			fmt.Println("Error confirming subscription:", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to confirm subscription"})
+			return
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode == http.StatusOK {
+			fmt.Println("Successfully confirmed subscription")
+			c.JSON(http.StatusOK, gin.H{"message": "Subscription confirmed"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to confirm subscription"})
+		}
+		return
+	}
+
+	// Handle regular SES feedback
 	var feedback models.AmazonSesFeedback
-	err := c.BindJSON(&feedback)
+	err = json.Unmarshal(body, &feedback)
 	if err != nil {
 		c.JSON(400, gin.H{
 			"message": err.Error(),
@@ -100,7 +148,6 @@ func AwsSesWebhook(c *gin.Context) {
 		if err != nil {
 			fmt.Println(err)
 		}
-
 	}
 
 	c.JSON(200, gin.H{
