@@ -38,15 +38,11 @@ func AwsSesWebhook(c *gin.Context) {
 		return
 	}
 
-	fmt.Printf("Raw request body: %s\n", string(body))
-
 	err = json.Unmarshal(body, &snsMessage)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to parse SNS message"})
 		return
 	}
-
-	fmt.Printf("Parsed SNS message: %+v\n", snsMessage)
 
 	if snsMessage.Type == "SubscriptionConfirmation" {
 		resp, err := http.Get(snsMessage.SubscribeURL)
@@ -75,9 +71,6 @@ func AwsSesWebhook(c *gin.Context) {
 		})
 		return
 	}
-
-	fmt.Printf("Received feedback: %+v\n", feedback)
-	fmt.Printf("Feedback EventType: %s\n", feedback.EventType)
 
 	if feedback.Mail.MessageId == "" {
 		c.JSON(400, gin.H{
@@ -118,20 +111,14 @@ func AwsSesWebhook(c *gin.Context) {
 		fmt.Println("amazon_ses_" + feedback.Mail.MessageId + " does not exist in cache")
 	}
 
-	fmt.Printf("Received feedback: %+v\n", feedback)
-	fmt.Printf("Feedback EventType: %s\n", feedback.EventType)
-
 	switch feedback.EventType {
 	case "Bounce":
-		fmt.Println("Processing Bounce event")
-		fmt.Printf("Bounce details: %+v\n", feedback)
 
 		dcFiles, err := filecache.DockerComposeFiles()
 		if err != nil {
 			fmt.Println("Error fetching Docker Compose files:", err)
 			break
 		}
-		fmt.Printf("Docker Compose files: %+v\n", dcFiles)
 
 		restaurantInfo := models.DockerCompose{}
 		restaurantId := ""
@@ -161,7 +148,6 @@ func AwsSesWebhook(c *gin.Context) {
 			})
 			return
 		}
-		fmt.Printf("Order details: %+v\n", order)
 
 		// send Slack notification
 		err = utils.SendSlackWebhookMessage(CreateSlackMessageSnsBounce(feedback, order, restaurantInfo), viper.GetString("slack.webhook"))
