@@ -345,3 +345,13 @@ func GetPickupTime(settings models.RestaurantSettingsByName, order models.Restau
 
 	return deliveryTime.Add(time.Minute * time.Duration(-minPrepTime)), nil
 }
+
+// NotifySlackError constructs and sends a Slack notification message
+func NotifySlackError(err error, to string, subject string, from string) {
+	message := models.SlackWebhookMessage{
+		Text: fmt.Sprintf("Failed to send email: \nError: %s\nTo: %s\nSubject: %s", err.Error(), to, subject+"\nFrom: "+from),
+	}
+	if slackErr := SendSlackWebhookMessage(message, viper.GetString("slack.webhook")); slackErr != nil {
+		fmt.Println("Failed to send Slack notification:", slackErr)
+	}
+}

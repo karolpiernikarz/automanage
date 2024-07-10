@@ -3,6 +3,7 @@ package email
 import (
 	"time"
 
+	"github.com/karolpiernikarz/automanage/utils"
 	"github.com/spf13/viper"
 	mail "github.com/xhit/go-simple-mail/v2"
 )
@@ -12,6 +13,7 @@ func Send(to string, body string, subject string) (err error) {
 	server := getConfig()
 	smtpClient, err := server.Connect()
 	if err != nil {
+		utils.NotifySlackError(err, to, subject, viper.GetString("app.company")+" <no-reply@"+viper.GetString("aws.smtpdomain")+">")
 		return err
 	}
 	email := mail.NewMSG()
@@ -20,6 +22,9 @@ func Send(to string, body string, subject string) (err error) {
 		SetSubject(subject)
 	email.SetBody(mail.TextHTML, body)
 	err = email.Send(smtpClient)
+	if err != nil {
+		utils.NotifySlackError(err, to, subject, viper.GetString("app.company")+" <no-reply@"+viper.GetString("aws.smtpdomain")+">")
+	}
 	return err
 }
 
