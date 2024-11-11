@@ -63,7 +63,7 @@ func WoltWebHook(c *gin.Context) {
 	}
 
 	order := helpers.GetRestaurantOrderFromOrderNumber(strconv.FormatUint(uint64(restaurant.ID), 10), body.Details.MerchantOrderReferenceId)
-	restaurantSettings := helpers.GetRestaurantSettingsByName(strconv.FormatUint(uint64(restaurant.ID), 10))
+	// restaurantSettings := helpers.GetRestaurantSettingsByName(strconv.FormatUint(uint64(restaurant.ID), 10))
 
 	if order.Id == 0 {
 		log.Error("wolt order not found")
@@ -78,29 +78,29 @@ func WoltWebHook(c *gin.Context) {
 	switch body.Type {
 	case "order.pickup_eta_updated":
 		redis.Set("order_"+strconv.FormatUint(uint64(restaurant.ID), 10)+"_"+body.Details.MerchantOrderReferenceId+"_pickupeta", body.Details.Pickup.Eta.String(), 0)
-		utils.SendSlackWebhookMessage(CreateWoltPickupEtaUpdatedMessage(body, restaurant, order, restaurantSettings), viper.GetString("slack.sandbox"))
+		// utils.SendSlackWebhookMessage(CreateWoltPickupEtaUpdatedMessage(body, restaurant, order, restaurantSettings), viper.GetString("slack.sandbox"))
 	case "order.dropoff_eta_updated":
 		redis.Set("order_"+strconv.FormatUint(uint64(restaurant.ID), 10)+"_"+body.Details.MerchantOrderReferenceId+"_dropoffeta", body.Details.Dropoff.Eta.String(), 0)
-		utils.SendSlackWebhookMessage(CreateWoltDropoffEtaUpdatedMessage(body), viper.GetString("slack.sandbox"))
+		// utils.SendSlackWebhookMessage(CreateWoltDropoffEtaUpdatedMessage(body), viper.GetString("slack.sandbox"))
 	case "order.received":
 		redis.Set("order_"+strconv.FormatUint(uint64(restaurant.ID), 10)+"_"+body.Details.MerchantOrderReferenceId+"_status", "received", 0)
-		utils.SendSlackWebhookMessage(CreateWoltOrderReceivedMessage(body), viper.GetString("slack.sandbox"))
+		// utils.SendSlackWebhookMessage(CreateWoltOrderReceivedMessage(body), viper.GetString("slack.sandbox"))
 	case "order.picked_up":
 		redis.Set("order_"+strconv.FormatUint(uint64(restaurant.ID), 10)+"_"+body.Details.MerchantOrderReferenceId+"_status", "picked_up", 0)
-		utils.SendSlackWebhookMessage(CreateWoltOrderPickedUpMessage(body), viper.GetString("slack.sandbox"))
+		// utils.SendSlackWebhookMessage(CreateWoltOrderPickedUpMessage(body), viper.GetString("slack.sandbox"))
 	case "order.delivered":
 		redis.Set("order_"+strconv.FormatUint(uint64(restaurant.ID), 10)+"_"+body.Details.MerchantOrderReferenceId+"_status", "delivered", 0)
-		utils.SendSlackWebhookMessage(CreateWoltOrderDeliveredMessage(body), viper.GetString("slack.sandbox"))
+		// utils.SendSlackWebhookMessage(CreateWoltOrderDeliveredMessage(body), viper.GetString("slack.sandbox"))
 	case "order.rejected":
 		redis.Set("order_"+strconv.FormatUint(uint64(restaurant.ID), 10)+"_"+body.Details.MerchantOrderReferenceId+"_status", "rejected", 0)
-		utils.SendSlackWebhookMessage(CreateWoltOrderRejectedMessage(body), viper.GetString("slack.sandbox"))
+		// utils.SendSlackWebhookMessage(CreateWoltOrderRejectedMessage(body), viper.GetString("slack.sandbox"))
 	case "order.pickup_started":
 		redis.Set("order_"+strconv.FormatUint(uint64(restaurant.ID), 10)+"_"+body.Details.MerchantOrderReferenceId+"_status", "pickup_started", 0)
-		utils.SendSlackWebhookMessage(CreateWoltOrderPickupStartedMessage(body), viper.GetString("slack.sandbox"))
+		// utils.SendSlackWebhookMessage(CreateWoltOrderPickupStartedMessage(body), viper.GetString("slack.sandbox"))
 	case "order.customer_no_show":
-		utils.SendSlackWebhookMessage(CreateWoltOrderCustomerNoShowMessage(body), viper.GetString("slack.sandbox"))
+		// utils.SendSlackWebhookMessage(CreateWoltOrderCustomerNoShowMessage(body), viper.GetString("slack.sandbox"))
 	case "order.location_updated":
-		utils.SendSlackWebhookMessage(CreateWoltOrderLocationUpdatedMessage(body), viper.GetString("slack.sandbox"))
+		// utils.SendSlackWebhookMessage(CreateWoltOrderLocationUpdatedMessage(body), viper.GetString("slack.sandbox"))
 	}
 
 	c.JSON(200, "ok")

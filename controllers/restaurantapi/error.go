@@ -2,7 +2,8 @@ package restaurantapi
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/karolpiernikarz/automanage/email"
+	"github.com/karolpiernikarz/automanage/models"
+	"github.com/karolpiernikarz/automanage/utils"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
@@ -23,9 +24,17 @@ func currierError(c *gin.Context) {
 	data := c.PostForm("data")
 	errorResponse := c.PostForm("response")
 	restaurantId := c.GetString("restaurantid")
-	err := email.Send(viper.GetString("app.notifyemail"), restaurantId+"\n"+data+"\n"+errorResponse, "Currier Error")
+
+	slackMessage := models.SlackWebhookMessage{
+		Text: "Currier Error\nRestaurant ID: " + restaurantId + "\nData: " + data + "\nResponse: " + errorResponse,
+	}
+
+	err := utils.SendSlackWebhookMessage(slackMessage, viper.GetString("slack.sandbox"))
 	if err != nil {
-		log.WithFields(log.Fields{"type": "currier", "restaurantId": restaurantId}).Warn("Error while sending email")
+		log.WithFields(log.Fields{
+			"type":         "currier",
+			"restaurantId": restaurantId,
+		}).Warn("Error while sending Slack message")
 		c.JSON(500, gin.H{
 			"status":  "error",
 			"message": err.Error(),
