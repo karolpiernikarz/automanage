@@ -34,7 +34,14 @@ func SetOrderBoxAlive() gin.HandlerFunc {
 func CallbackHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Next()
-		go handleCallback(c)
+		go func() {
+			defer func() {
+				if r := recover(); r != nil {
+					fmt.Println("Recovered from panic in handleCallback:", r)
+				}
+			}()
+			handleCallback(c)
+		}()
 	}
 }
 
@@ -67,8 +74,16 @@ func handleCallback(c *gin.Context) {
 		return
 	}
 	orderNumber := c.Query("o")
-	// remove all strings before first "_" in orderNumber
-	orderNumber = orderNumber[strings.Index(orderNumber, "_")+1:]
+	if orderNumber == "" {
+		fmt.Println("Empty order number in callback")
+		return
+	}
+
+	underscoreIndex := strings.Index(orderNumber, "_")
+	if underscoreIndex >= 0 {
+		orderNumber = orderNumber[underscoreIndex+1:]
+	}
+
 	ak := c.Query("ak")
 	reason := c.Query("m")
 	restaurantId := c.GetString("restaurantId")
