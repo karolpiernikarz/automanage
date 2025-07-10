@@ -867,10 +867,31 @@ func WhenRestaurantOpen(restaurantId string) (openingTime time.Time, closingTime
 			workingTime = currentTime.Add(time.Hour * 24)
 		}
 		if openTimes[workingTime.Weekday()].IsOpen {
-			openHour, _ := strconv.Atoi(openTimes[workingTime.Weekday()].Open[0:2])
-			openMinute, _ := strconv.Atoi(openTimes[workingTime.Weekday()].Open[3:5])
-			closeHour, _ := strconv.Atoi(openTimes[workingTime.Weekday()].Open[6:8])
-			closeMinute, _ := strconv.Atoi(openTimes[workingTime.Weekday()].Open[9:11])
+			timeStr := openTimes[workingTime.Weekday()].Open
+
+			openHour, err := strconv.Atoi(timeStr[0:2])
+			if err != nil {
+				fmt.Printf("WhenRestaurantOpen: unable to parse open hour from '%s': %v\n", timeStr, err)
+				continue
+			}
+
+			openMinute, err := strconv.Atoi(timeStr[3:5])
+			if err != nil {
+				fmt.Printf("WhenRestaurantOpen: unable to parse open minute from '%s': %v\n", timeStr, err)
+				continue
+			}
+
+			closeHour, err := strconv.Atoi(timeStr[6:8])
+			if err != nil {
+				fmt.Printf("WhenRestaurantOpen: unable to parse close hour from '%s': %v\n", timeStr, err)
+				continue
+			}
+
+			closeMinute, err := strconv.Atoi(timeStr[9:11])
+			if err != nil {
+				fmt.Printf("WhenRestaurantOpen: unable to parse close minute from '%s': %v\n", timeStr, err)
+				continue
+			}
 			closingTime = time.Date(workingTime.Year(), workingTime.Month(), workingTime.Day(), closeHour, closeMinute, 0, 0, workingTime.Location())
 			openingTime = time.Date(workingTime.Year(), workingTime.Month(), workingTime.Day(), openHour, openMinute, 0, 0, workingTime.Location())
 			currentTime := currentTime.Format("15:04")

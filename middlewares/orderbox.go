@@ -93,7 +93,7 @@ func handleCallback(c *gin.Context) {
 		reason = reason[:len(reason)-8]
 		minutesInt, err := strconv.Atoi(reason)
 		if err != nil {
-			fmt.Println(err)
+			fmt.Printf("handleCallback parse error: unable to convert reason '%s' to int: %v\n", reason, err)
 			return
 		}
 		if minutesInt > 0 {
