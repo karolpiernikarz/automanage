@@ -87,19 +87,29 @@ func handleCallback(c *gin.Context) {
 	ak := c.Query("ak")
 	reason := c.Query("m")
 	restaurantId := c.GetString("restaurantId")
-	// remove _minutes from reason and make it int
+	// remove '_minutes' suffix from reason safely and convert to int
 	message := ""
 	if ak == "Accepted" {
-		reason = reason[:len(reason)-8]
-		minutesInt, err := strconv.Atoi(reason)
-		if err != nil {
-			fmt.Printf("handleCallback parse error: unable to convert reason '%s' to int: %v\n", reason, err)
-			return
-		}
-		if minutesInt > 0 {
-			message = "Accepted and added " + reason + " minutes"
+		if strings.HasSuffix(reason, "_minutes") {
+			reason = strings.TrimSuffix(reason, "_minutes")
 		} else {
+			fmt.Printf("handleCallback warning: expected suffix '_minutes' not found in reason '%s'\n", reason)
+		}
+
+		if reason == "" {
+			// nothing to add, treat as plain acceptance
 			message = "Accepted"
+		} else {
+			minutesInt, err := strconv.Atoi(reason)
+			if err != nil {
+				fmt.Printf("handleCallback parse error: unable to convert reason '%s' to int: %v\n", reason, err)
+				return
+			}
+			if minutesInt > 0 {
+				message = "Accepted and added " + reason + " minutes"
+			} else {
+				message = "Accepted"
+			}
 		}
 	}
 	if ak == "Rejected" {
