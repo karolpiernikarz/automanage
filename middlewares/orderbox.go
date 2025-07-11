@@ -90,21 +90,13 @@ func handleCallback(c *gin.Context) {
 	// remove '_minutes' suffix from reason safely and convert to int
 	message := ""
 	if ak == "Accepted" {
-		if strings.HasSuffix(reason, "_minutes") {
-			reason = strings.TrimSuffix(reason, "_minutes")
-		} else {
-			fmt.Printf("handleCallback warning: expected suffix '_minutes' not found in reason '%s'\n", reason)
-		}
-
-		if reason == "" {
-			// nothing to add, treat as plain acceptance
+		// Extract leading numeric part from the reason string (e.g., "10_min.", "0_Minutes").
+		minutesInt, err := utils.ExtractNumericPartFromString(reason)
+		if err != nil {
+			// No numeric prefix present – treat as plain acceptance.
+			fmt.Printf("handleCallback info: no minutes found in reason '%s'; treating as 0\n", reason)
 			message = "Accepted"
 		} else {
-			minutesInt, err := strconv.Atoi(reason)
-			if err != nil {
-				fmt.Printf("handleCallback parse error: unable to convert reason '%s' to int: %v\n", reason, err)
-				return
-			}
 			if minutesInt > 0 {
 				message = "Accepted and added " + reason + " minutes"
 			} else {
